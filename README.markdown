@@ -25,7 +25,9 @@ Table of Contents
     * [set_escape_uri](#set_escape_uri)
     * [set_hashed_upstream](#set_hashed_upstream)
     * [set_encode_base32](#set_encode_base32)
+    * [set_base32_padding](#set_base32_padding)
     * [set_misc_base32_padding](#set_misc_base32_padding)
+    * [set_base32_alphabet](#set_base32_alphabet)
     * [set_decode_base32](#set_decode_base32)
     * [set_encode_base64](#set_encode_base64)
     * [set_decode_base64](#set_decode_base64)
@@ -56,137 +58,137 @@ Table of Contents
 Version
 =======
 
-This document describes ngx_set_misc [v0.24](https://github.com/agentzh/set-misc-nginx-module/tags) released on 10 January 2014.
+This document describes ngx_set_misc [v0.28](https://github.com/openresty/set-misc-nginx-module/tags) released on 21 January 2015.
 
 Synopsis
 ========
 
 ```nginx
 
-location /foo {
-    set $a $arg_a;
-    set_if_empty $a 56;
+ location /foo {
+     set $a $arg_a;
+     set_if_empty $a 56;
 
-    # GET /foo?a=32 will yield $a == 32
-    # while GET /foo and GET /foo?a= will
-    # yeild $a == 56 here.
-}
+     # GET /foo?a=32 will yield $a == 32
+     # while GET /foo and GET /foo?a= will
+     # yeild $a == 56 here.
+ }
 
-location /bar {
-    set $foo "hello\n\n'\"\\";
-    set_quote_sql_str $foo $foo; # for mysql
+ location /bar {
+     set $foo "hello\n\n'\"\\";
+     set_quote_sql_str $foo $foo; # for mysql
 
-    # OR in-place editing:
-    #   set_quote_sql_str $foo;
+     # OR in-place editing:
+     #   set_quote_sql_str $foo;
 
-    # now $foo is: 'hello\n\n\'\"\\'
-}
+     # now $foo is: 'hello\n\n\'\"\\'
+ }
 
-location /bar {
-    set $foo "hello\n\n'\"\\";
-    set_quote_pgsql_str $foo;  # for PostgreSQL
+ location /bar {
+     set $foo "hello\n\n'\"\\";
+     set_quote_pgsql_str $foo;  # for PostgreSQL
 
-    # now $foo is: E'hello\n\n\'\"\\'
-}
+     # now $foo is: E'hello\n\n\'\"\\'
+ }
 
-location /json {
-    set $foo "hello\n\n'\"\\";
-    set_quote_json_str $foo $foo;
+ location /json {
+     set $foo "hello\n\n'\"\\";
+     set_quote_json_str $foo $foo;
 
-    # OR in-place editing:
-    #   set_quote_json_str $foo;
+     # OR in-place editing:
+     #   set_quote_json_str $foo;
 
-    # now $foo is: "hello\n\n'\"\\"
-}
+     # now $foo is: "hello\n\n'\"\\"
+ }
 
-location /baz {
-    set $foo "hello%20world";
-    set_unescape_uri $foo $foo;
+ location /baz {
+     set $foo "hello%20world";
+     set_unescape_uri $foo $foo;
 
-    # OR in-place editing:
-    #   set_unescape_uri $foo;
+     # OR in-place editing:
+     #   set_unescape_uri $foo;
 
-    # now $foo is: hello world
-}
+     # now $foo is: hello world
+ }
 
-upstream_list universe moon sun earth;
-upstream moon { ... }
-upstream sun { ... }
-upstream earth { ... }
-location /foo {
-    set_hashed_upstream $backend universe $arg_id;
-    drizzle_pass $backend; # used with ngx_drizzle
-}
+ upstream_list universe moon sun earth;
+ upstream moon { ... }
+ upstream sun { ... }
+ upstream earth { ... }
+ location /foo {
+     set_hashed_upstream $backend universe $arg_id;
+     drizzle_pass $backend; # used with ngx_drizzle
+ }
 
-location /base32 {
-    set $a 'abcde';
-    set_encode_base32 $a;
-    set_decode_base32 $b $a;
+ location /base32 {
+     set $a 'abcde';
+     set_encode_base32 $a;
+     set_decode_base32 $b $a;
 
-    # now $a == 'c5h66p35' and
-    # $b == 'abcde'
-}
+     # now $a == 'c5h66p35' and
+     # $b == 'abcde'
+ }
 
-location /base64 {
-    set $a 'abcde';
-    set_encode_base64 $a;
-    set_decode_base64 $b $a;
+ location /base64 {
+     set $a 'abcde';
+     set_encode_base64 $a;
+     set_decode_base64 $b $a;
 
-    # now $a == 'YWJjZGU=' and
-    # $b == 'abcde'
-}
+     # now $a == 'YWJjZGU=' and
+     # $b == 'abcde'
+ }
 
-location /hex {
-    set $a 'abcde';
-    set_encode_hex $a;
-    set_decode_hex $b $a;
+ location /hex {
+     set $a 'abcde';
+     set_encode_hex $a;
+     set_decode_hex $b $a;
 
-    # now $a == '6162636465' and
-    # $b == 'abcde'
-}
+     # now $a == '6162636465' and
+     # $b == 'abcde'
+ }
 
-# GET /sha1 yields the output
-#   aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
-location /sha1 {
-    set_sha1 $a hello;
-    echo $a;
-}
+ # GET /sha1 yields the output
+ #   aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
+ location /sha1 {
+     set_sha1 $a hello;
+     echo $a;
+ }
 
-# ditto
-location /sha1 {
-    set $a hello;
-    set_sha1 $a;
-    echo $a;
-}
+ # ditto
+ location /sha1 {
+     set $a hello;
+     set_sha1 $a;
+     echo $a;
+ }
 
-# GET /today yields the date of today in local time using format 'yyyy-mm-dd'
-location /today {
-    set_local_today $today;
-    echo $today;
-}
+ # GET /today yields the date of today in local time using format 'yyyy-mm-dd'
+ location /today {
+     set_local_today $today;
+     echo $today;
+ }
 
-# GET /signature yields the hmac-sha-1 signature
-# given a secret and a string to sign
-# this example yields the base64 encoded singature which is
-# "HkADYytcoQQzqbjQX33k/ZBB/DQ="
-location /signature {
-    set $secret_key 'secret-key';
-    set $string_to_sign "some-string-to-sign";
-    set_hmac_sha1 $signature $secret_key $string_to_sign;
-    set_encode_base64 $signature $signature;
-    echo $signature;
-}
+ # GET /signature yields the hmac-sha-1 signature
+ # given a secret and a string to sign
+ # this example yields the base64 encoded singature which is
+ # "HkADYytcoQQzqbjQX33k/ZBB/DQ="
+ location /signature {
+     set $secret_key 'secret-key';
+     set $string_to_sign "some-string-to-sign";
+     set_hmac_sha1 $signature $secret_key $string_to_sign;
+     set_encode_base64 $signature $signature;
+     echo $signature;
+ }
 
-location = /rand {
-    set $from 3;
-    set $to 15;
-    set_random $rand $from $to;
+ location = /rand {
+     set $from 3;
+     set $to 15;
+     set_random $rand $from $to;
 
-    # or write directly
-    #   set_random $rand 3 15;
+     # or write directly
+     #   set_random $rand 3 15;
 
-    echo $rand;  # will print a random integer in the range [3, 15]
-}
+     echo $rand;  # will print a random integer in the range [3, 15]
+ }
 ```
 
 Description
@@ -219,17 +221,17 @@ In the following example,
 
 ```nginx
 
-set $a 32;
-set_if_empty $a 56;
+ set $a 32;
+ set_if_empty $a 56;
 ```
 
 the variable `$dst` will take the value 32 at last. But in the sample
 
 ```nginx
 
-set $a '';
-set $value "hello, world"
-set_if_empty $a $value;
+ set $a '';
+ set $value "hello, world"
+ set_if_empty $a $value;
 ```
 
 `$a` will take the value `"hello, world"` at last.
@@ -254,40 +256,40 @@ When taking two arguments, this directive will quote the value of the second arg
 
 ```nginx
 
-location /test {
-    set $value "hello\n\r'\"\\";
-    set_quote_sql_str $quoted $value;
+ location /test {
+     set $value "hello\n\r'\"\\";
+     set_quote_sql_str $quoted $value;
 
-    echo $quoted;
-}
+     echo $quoted;
+ }
 ```
 
 Then request `GET /test` will yield the following output
 
 ```sql
 
-'hello\n\r\'\"\\'
+ 'hello\n\r\'\"\\'
 ```
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $value "hello\n\r'\"\\";
-    set_quote_sql_str $value;
+ location /test {
+     set $value "hello\n\r'\"\\";
+     set_quote_sql_str $value;
 
-    echo $value;
-}
+     echo $value;
+ }
 ```
 
 then request `GET /test` will give exactly the same output as the previous example.
 
 This directive is usually used to prevent SQL injection.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
 
 [Back to TOC](#table-of-contents)
 
@@ -327,38 +329,38 @@ When taking two arguments, this directive will quote the value of the second arg
 
 ```nginx
 
-location /test {
-    set $value "hello\n\r'\"\\";
-    set_quote_json_str $quoted $value;
+ location /test {
+     set $value "hello\n\r'\"\\";
+     set_quote_json_str $quoted $value;
 
-    echo $quoted;
-}
+     echo $quoted;
+ }
 ```
 
 Then request `GET /test` will yield the following output
 
 ```javascript
 
-"hello\n\r'\"\\"
+ "hello\n\r'\"\\"
 ```
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $value "hello\n\r'\"\\";
-    set_quote_json_str $value;
+ location /test {
+     set $value "hello\n\r'\"\\";
+     set_quote_json_str $value;
 
-    echo $value;
-}
+     echo $value;
+ }
 ```
 
 then request `GET /test` will give exactly the same output as the previous example.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
 
 [Back to TOC](#table-of-contents)
 
@@ -380,10 +382,10 @@ When taking two arguments, this directive will unescape the value of the second 
 
 ```nginx
 
-location /test {
-    set_unescape_uri $key $arg_key;
-    echo $key;
-}
+ location /test {
+     set_unescape_uri $key $arg_key;
+     echo $key;
+ }
 ```
 
 Then request `GET /test?key=hello+world%21` will yield the following output
@@ -394,23 +396,23 @@ Then request `GET /test?key=hello+world%21` will yield the following output
 
 The nginx standard [$arg_PARAMETER](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_arg_) variable holds the raw (escaped) value of the URI parameter. So we need the `set_unescape_uri` directive to unescape it first.
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $key $arg_key;
-    set_unescape_uri $key;
+ location /test {
+     set $key $arg_key;
+     set_unescape_uri $key;
 
-    echo $key;
-}
+     echo $key;
+ }
 ```
 
 then request `GET /test?key=hello+world%21` will give exactly the same output as the previous example.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
 
 [Back to TOC](#table-of-contents)
 
@@ -448,24 +450,24 @@ Here's an example,
 
 ```nginx
 
-upstream moon { ... }
-upstream sun { ... }
-upstream earth { ... }
+ upstream moon { ... }
+ upstream sun { ... }
+ upstream earth { ... }
 
-upstream_list universe moon sun earth;
+ upstream_list universe moon sun earth;
 
-location /test {
-    set_unescape_uri $key $arg_key;
-    set $list_name universe;
-    set_hashed_upstream $backend $list_name $key;
+ location /test {
+     set_unescape_uri $key $arg_key;
+     set $list_name universe;
+     set_hashed_upstream $backend $list_name $key;
 
-    echo $backend;        
-}
+     echo $backend;
+ }
 ```
 
 Then `GET /test?key=blah` will output either "moon", "sun", or "earth", depending on the actual value of the `key` query argument.
 
-This directive is usually used to compute an nginx variable to be passed to [memc-nginx-module](http://github.com/agentzh/memc-nginx-module)'s [memc_pass](http://github.com/agentzh/memc-nginx-module#memc_pass) directive, [redis2-nginx-module](http://github.com/agentzh/redis2-nginx-module)'s [[HttpRedis2Module#redis2_pass]] directive, and [ngx_http_proxy_module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html)'s [proxy_pass](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass) directive, among others.
+This directive is usually used to compute an nginx variable to be passed to [memc-nginx-module](http://github.com/openresty/memc-nginx-module)'s [memc_pass](http://github.com/openresty/memc-nginx-module#memc_pass) directive, [redis2-nginx-module](http://github.com/openresty/redis2-nginx-module)'s [[HttpRedis2Module#redis2_pass]] directive, and [ngx_http_proxy_module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html)'s [proxy_pass](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass) directive, among others.
 
 [Back to TOC](#table-of-contents)
 
@@ -487,12 +489,12 @@ When taking two arguments, this directive will encode the value of the second ar
 
 ```nginx
 
-location /test {
-    set $raw "abcde";
-    set_encode_base32 $digest $raw;
+ location /test {
+     set $raw "abcde";
+     set_encode_base32 $digest $raw;
 
-    echo $digest;
-}
+     echo $digest;
+ }
 ```
 
 Then request `GET /test` will yield the following output
@@ -501,27 +503,44 @@ Then request `GET /test` will yield the following output
     c5h66p35
 
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
-RFC forces the `[A-Z2-7]` RFC-3548 compliant encoding, but we're using the "base32hex" encoding (`[0-9a-v]`).
+RFC forces the `[A-Z2-7]` RFC-3548 compliant encoding, but we are using the "base32hex" encoding (`[0-9a-v]`) by default. The [set_base32_alphabet](#set_base32_alphabet) directive (first introduced in `v0.28`) allows you to change the alphabet used for encoding/decoding so RFC-3548 compliant encoding is still possible by custom configurations.
 
-By default, the `=` character is used to pad the left-over bytes due to alignment. But the padding behavior can be completely disabled by setting [set_misc_base32_padding](#set_misc_base32_padding) `off`.
+By default, the `=` character is used to pad the left-over bytes due to alignment. But the padding behavior can be completely disabled by setting [set_base32_padding](#set_base32_padding) `off`.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $value "abcde";
-    set_encode_base32 $value;
+ location /test {
+     set $value "abcde";
+     set_encode_base32 $value;
 
-    echo $value;
-}
+     echo $value;
+ }
 ```
 
 then request `GET /test` will give exactly the same output as the previous example.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
+
+[Back to TOC](#table-of-contents)
+
+set_base32_padding
+------------------
+**syntax:** *set_base32_padding on|off*
+
+**default:** *on*
+
+**context:** *http, server, server if, location, location if*
+
+**phase:** *no*
+
+This directive can control whether to pad left-over bytes with the "=" character when encoding a base32 digest by the
+[set_encode_base32](#set_encode_base32) directive.
+
+This directive was first introduced in `v0.28`. If you use earlier versions of this module, then you should use [set_misc_base32_padding](#set_misc_base32_padding) instead.
 
 [Back to TOC](#table-of-contents)
 
@@ -535,7 +554,25 @@ set_misc_base32_padding
 
 **phase:** *no*
 
-This directive can control whether to pad left-over bytes with the "=" character when encoding a base32 digest by the [set_encode_base32](#set_encode_base32) directive.
+This directive has been deprecated since `v0.28`. Use [set_base32_padding](#set_base32_padding) instead if you are using `v0.28+`.
+
+[Back to TOC](#table-of-contents)
+
+set_base32_alphabet
+-------------------
+**syntax:** *set_base32_alphabet &lt;alphabet&gt;*
+
+**default:** *"0123456789abcdefghijklmnopqrstuv"*
+
+**context:** *http, server, server if, location, location if*
+
+**phase:** *no*
+
+This directive controls the alphabet used for encoding/decoding a base32 digest. It accepts a string containing the desired alphabet like "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567" for standard alphabet.
+
+Extended (base32hex) alphabet is used by default.
+
+This directive was first introduced in `v0.28`.
 
 [Back to TOC](#table-of-contents)
 
@@ -575,12 +612,12 @@ When taking two arguments, this directive will encode the value of the second ar
 
 ```nginx
 
-location /test {
-    set $raw "abcde";
-    set_encode_base64 $digest $raw;
+ location /test {
+     set $raw "abcde";
+     set_encode_base64 $digest $raw;
 
-    echo $digest;
-}
+     echo $digest;
+ }
 ```
 
 Then request `GET /test` will yield the following output
@@ -589,23 +626,23 @@ Then request `GET /test` will yield the following output
     YWJjZGU=
 
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $value "abcde";
-    set_encode_base64 $value;
+ location /test {
+     set $value "abcde";
+     set_encode_base64 $value;
 
-    echo $value;
-}
+     echo $value;
+ }
 ```
 
 then request `GET /test` will give exactly the same output as the previous example.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
 
 [Back to TOC](#table-of-contents)
 
@@ -645,12 +682,12 @@ When taking two arguments, this directive will encode the value of the second ar
 
 ```nginx
 
-location /test {
-    set $raw "章亦春";
-    set_encode_hex $digest $raw;
+ location /test {
+     set $raw "章亦春";
+     set_encode_hex $digest $raw;
 
-    echo $digest;
-}
+     echo $digest;
+ }
 ```
 
 Then request `GET /test` will yield the following output
@@ -659,23 +696,23 @@ Then request `GET /test` will yield the following output
     e7aba0e4baa6e698a5
 
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $value "章亦春";
-    set_encode_hex $value;
+ location /test {
+     set $value "章亦春";
+     set_encode_hex $value;
 
-    echo $value;
-}
+     echo $value;
+ }
 ```
 
 then request `GET /test` will give exactly the same output as the previous example.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
 
 [Back to TOC](#table-of-contents)
 
@@ -717,12 +754,12 @@ For example,
 
 ```nginx
 
-location /test {
-    set $raw "hello";
-    set_sha1 $digest $raw;
+ location /test {
+     set $raw "hello";
+     set_sha1 $digest $raw;
 
-    echo $digest;
-}
+     echo $digest;
+ }
 ```
 
 Then request `GET /test` will yield the following output
@@ -731,23 +768,23 @@ Then request `GET /test` will yield the following output
     aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
 
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $value "hello";
-    set_sha1 $value;
+ location /test {
+     set $value "hello";
+     set_sha1 $value;
 
-    echo $value;
-}
+     echo $value;
+ }
 ```
 
 then request `GET /test` will give exactly the same output as the previous example.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
 
 [Back to TOC](#table-of-contents)
 
@@ -771,12 +808,12 @@ For example,
 
 ```nginx
 
-location /test {
-    set $raw "hello";
-    set_md5 $digest $raw;
+ location /test {
+     set $raw "hello";
+     set_md5 $digest $raw;
 
-    echo $digest;
-}
+     echo $digest;
+ }
 ```
 
 Then request `GET /test` will yield the following output
@@ -785,23 +822,23 @@ Then request `GET /test` will yield the following output
     5d41402abc4b2a76b9719d911017c592
 
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
 ```nginx
 
-location /test {
-    set $value "hello";
-    set_md5 $value;
+ location /test {
+     set $value "hello";
+     set_md5 $value;
 
-    echo $value;
-}
+     echo $value;
+ }
 ```
 
 then request `GET /test` will give exactly the same output as the previous example.
 
-This directive can be invoked by [lua-nginx-module](http://github.com/chaoslawful/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/chaoslawful/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/agentzh/array-var-nginx-module)'s [array_map_op](http://github.com/agentzh/array-var-nginx-module#array_map_op) directive.
+This directive can be invoked by [lua-nginx-module](http://github.com/openresty/lua-nginx-module)'s [ndk.set_var.DIRECTIVE](http://github.com/openresty/lua-nginx-module#ndkset_vardirective) interface and [array-var-nginx-module](http://github.com/openresty/array-var-nginx-module)'s [array_map_op](http://github.com/openresty/array-var-nginx-module#array_map_op) directive.
 
 [Back to TOC](#table-of-contents)
 
@@ -825,13 +862,13 @@ For example,
 
 ```nginx
 
-location /test {
-    set $secret 'thisisverysecretstuff';
-    set $string_to_sign 'some string we want to sign';
-    set_hmac_sha1 $signature $secret $string_to_sign;
-    set_encode_base64 $signature $signature;
-    echo $signature;
-}
+ location /test {
+     set $secret 'thisisverysecretstuff';
+     set $string_to_sign 'some string we want to sign';
+     set_hmac_sha1 $signature $secret $string_to_sign;
+     set_encode_base64 $signature $signature;
+     echo $signature;
+ }
 ```
 
 Then request `GET /test` will yield the following output
@@ -840,7 +877,7 @@ Then request `GET /test` will yield the following output
     R/pvxzHC4NLtj7S+kXFg/NePTmk=
 
 
-Please note that we're using [echo-nginx-module](http://github.com/agentzh/echo-nginx-module)'s [echo directive](http://github.com/agentzh/echo-nginx-module#echo) here to output values of nginx variables directly.
+Please note that we're using [echo-nginx-module](http://github.com/openresty/echo-nginx-module)'s [echo directive](http://github.com/openresty/echo-nginx-module#echo) here to output values of nginx variables directly.
 
 This directive requires the OpenSSL library enabled in your Nignx build (usually by passing the `--with-http_ssl_module` option to the `./configure` script).
 
@@ -866,13 +903,13 @@ For instance,
 
 ```nginx
 
-location /test {
-    set $from 5;                              
-    set $to 7;                                
-    set_random $res $from $to;                
-                                              
-    echo $res;                                
-}
+ location /test {
+     set $from 5;
+     set $to 7;
+     set_random $res $from $to;
+
+     echo $res;
+ }
 ```
 
 then request `GET /test` will output a number between 5 and 7 (i.e., among 5, 6, 7).
@@ -905,11 +942,11 @@ For instance,
 
 ```nginx
 
-location /test {
-    set_secure_random_alphanum $res 32;
+ location /test {
+     set_secure_random_alphanum $res 32;
 
-    echo $res;
-}
+     echo $res;
+ }
 ```
 
 then request `GET /test` will output a string like `ivVVRP2DGaAqDmdf3Rv4ZDJ7k0gOfASz`.
@@ -940,11 +977,11 @@ For instance,
 
 ```nginx
 
-location /test {
-    set_secure_random_lcalpha $res 32;
+ location /test {
+     set_secure_random_lcalpha $res 32;
 
-    echo $res;
-}
+     echo $res;
+ }
 ```
 
 then request `GET /test` will output a string like `kcuxcddktffsippuekhshdaclaquiusj`.
@@ -981,13 +1018,13 @@ For instance,
 
 ```nginx
 
-location /rotate {
-    default_type text/plain;
-    set $counter $cookie_counter;
-    set_rotate $counter 1 5;
-    echo $counter;
-    add_header Set-Cookie counter=$counter;
-}
+ location /rotate {
+     default_type text/plain;
+     set $counter $cookie_counter;
+     set_rotate $counter 1 5;
+     echo $counter;
+     add_header Set-Cookie counter=$counter;
+ }
 ```
 
 then request `GET /rotate` will output next number between 1 and 5 (i.e., 1, 2, 3, 4, 5) on each
@@ -997,11 +1034,11 @@ Another example is to use server-side value persistence to do simple round-robin
 
 ```nginx
 
-location /rotate {
-    default_type text/plain;
-    set_rotate $counter 0 3;
-    echo $counter;
-}
+ location /rotate {
+     default_type text/plain;
+     set_rotate $counter 0 3;
+     echo $counter;
+ }
 ```
 
 And accessing `/rotate` will also output integer sequence 0, 1, 2, 3, 0, 1, 2, 3, and so on.
@@ -1026,10 +1063,10 @@ Here's an example,
 
 ```nginx
 
-location /today {
-    set_local_today $today;
-    echo $today;
-}
+ location /today {
+     set_local_today $today;
+     echo $today;
+ }
 ```
 
 then request `GET /today` will output something like
@@ -1062,10 +1099,10 @@ Below is an example:
 
 ```nginx
 
-location = /t {
-    set_formatted_gmt_time $timestr "%a %b %e %H:%M:%S %Y GMT";
-    echo $timestr;
-}
+ location = /t {
+     set_formatted_gmt_time $timestr "%a %b %e %H:%M:%S %Y GMT";
+     echo $timestr;
+ }
 ```
 
 Accessing `/t` yields the output
@@ -1096,10 +1133,10 @@ Below is an example:
 
 ```nginx
 
-location = /t {
-    set_formatted_local_time $timestr "%a %b %e %H:%M:%S %Y %Z";
-    echo $timestr;
-}
+ location = /t {
+     set_formatted_local_time $timestr "%a %b %e %H:%M:%S %Y %Z";
+     echo $timestr;
+ }
 ```
 
 Accessing `/t` yields the output
@@ -1119,7 +1156,7 @@ Do not use [$arg_PARAMETER](http://nginx.org/en/docs/http/ngx_http_core_module.h
 
 ```nginx
 
-set_if_empty $arg_user 'foo';  # DO NOT USE THIS!
+ set_if_empty $arg_user 'foo';  # DO NOT USE THIS!
 ```
 
 may lead to segmentation faults.
@@ -1132,25 +1169,25 @@ Installation
 This module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org). If you want to install this module manually with your own Nginx source tarball, then follow the steps below:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.5.8 (see [nginx compatibility](#compatibility)), and then build the source with this module:
+the version 1.7.7 (see [nginx compatibility](#compatibility)), and then build the source with this module:
 
 ```bash
 
-wget 'http://nginx.org/download/nginx-1.5.8.tar.gz'
-tar -xzvf nginx-1.5.8.tar.gz
-cd nginx-1.5.8/
+ wget 'http://nginx.org/download/nginx-1.7.7.tar.gz'
+ tar -xzvf nginx-1.7.7.tar.gz
+ cd nginx-1.7.7/
 
-# Here we assume you would install you nginx under /opt/nginx/.
-./configure --prefix=/opt/nginx \
-    --with-http_ssl_module \
-    --add-module=/path/to/ngx_devel_kit \
-    --add-module=/path/to/set-misc-nginx-module
+ # Here we assume you would install you nginx under /opt/nginx/.
+ ./configure --prefix=/opt/nginx \
+     --with-http_ssl_module \
+     --add-module=/path/to/ngx_devel_kit \
+     --add-module=/path/to/set-misc-nginx-module
 
-make -j2
-make install
+ make -j2
+ make install
 ```
 
-Download the latest version of the release tarball of this module from [set-misc-nginx-module file list](http://github.com/agentzh/set-misc-nginx-module/tags), and the latest tarball for [ngx_devel_kit](https://github.com/simpl/ngx_devel_kit) from its [file list](https://github.com/simpl/ngx_devel_kit/tags).
+Download the latest version of the release tarball of this module from [set-misc-nginx-module file list](http://github.com/openresty/set-misc-nginx-module/tags), and the latest tarball for [ngx_devel_kit](https://github.com/simpl/ngx_devel_kit) from its [file list](https://github.com/simpl/ngx_devel_kit/tags).
 
 Also, this module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org/).
 
@@ -1161,6 +1198,8 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
+* **1.7.x**                       (last tested: 1.7.7)
+* **1.6.x**
 * **1.5.x**                       (last tested: 1.5.8)
 * **1.4.x**                       (last tested: 1.4.4)
 * **1.2.x**                       (last tested: 1.2.9)
@@ -1180,14 +1219,14 @@ Report Bugs
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
 
 1. send a bug report or even patches to the [openresty-en mailing list](https://groups.google.com/group/openresty-en),
-1. or create a ticket on the [issue tracking interface](http://github.com/agentzh/set-misc-nginx-module/issues) provided by GitHub.
+1. or create a ticket on the [issue tracking interface](http://github.com/openresty/set-misc-nginx-module/issues) provided by GitHub.
 
 [Back to TOC](#table-of-contents)
 
 Source Repository
 =================
 
-Available on github at [agentzh/set-misc-nginx-module](http://github.com/agentzh/set-misc-nginx-module).
+Available on github at [openresty/set-misc-nginx-module](http://github.com/openresty/set-misc-nginx-module).
 
 [Back to TOC](#table-of-contents)
 
@@ -1203,14 +1242,14 @@ The change logs for every release of this module can be obtained from the ngx_op
 Test Suite
 ==========
 
-This module comes with a Perl-driven test suite. The [test cases](http://github.com/agentzh/set-misc-nginx-module/tree/master/t/) are
-[declarative](http://github.com/agentzh/set-misc-nginx-module/blob/master/t/escape-uri.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
+This module comes with a Perl-driven test suite. The [test cases](http://github.com/openresty/set-misc-nginx-module/tree/master/t/) are
+[declarative](http://github.com/openresty/set-misc-nginx-module/blob/master/t/escape-uri.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
 
 To run it on your side:
 
 ```bash
 
-$ PATH=/path/to/your/nginx-with-set-misc-module:$PATH prove -r t
+ $ PATH=/path/to/your/nginx-with-set-misc-module:$PATH prove -r t
 ```
 
 You need to terminate any Nginx processes before running the test suite if you have changed the Nginx server binary.
@@ -1238,7 +1277,7 @@ This wiki page is also maintained by the author himself, and everybody is encour
 Copyright & License
 ===================
 
-Copyright (C) 2009-2014, Yichun Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
+Copyright (C) 2009-2015, Yichun Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
 
 This module is licensed under the terms of the BSD license.
 
@@ -1267,3 +1306,4 @@ See Also
 ========
 * [Nginx Devel Kit](https://github.com/simpl/ngx_devel_kit)
 * [The ngx_openresty bundle](http://openresty.org)
+

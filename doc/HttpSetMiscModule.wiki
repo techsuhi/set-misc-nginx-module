@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes ngx_set_misc [https://github.com/agentzh/set-misc-nginx-module/tags v0.24] released on 10 January 2014.
+This document describes ngx_set_misc [https://github.com/openresty/set-misc-nginx-module/tags v0.28] released on 21 January 2015.
 
 = Synopsis =
 
@@ -411,9 +411,9 @@ c5h66p35
 
 Please note that we're using [[HttpEchoModule]]'s [[HttpEchoModule#echo|echo directive]] here to output values of nginx variables directly.
 
-RFC forces the <code>[A-Z2-7]</code> RFC-3548 compliant encoding, but we're using the "base32hex" encoding (<code>[0-9a-v]</code>).
+RFC forces the <code>[A-Z2-7]</code> RFC-3548 compliant encoding, but we are using the "base32hex" encoding (<code>[0-9a-v]</code>) by default. The [[#set_base32_alphabet|set_base32_alphabet]] directive (first introduced in <code>v0.28</code>) allows you to change the alphabet used for encoding/decoding so RFC-3548 compliant encoding is still possible by custom configurations.
 
-By default, the <code>=</code> character is used to pad the left-over bytes due to alignment. But the padding behavior can be completely disabled by setting [[#set_misc_base32_padding|set_misc_base32_padding]] <code>off</code>.
+By default, the <code>=</code> character is used to pad the left-over bytes due to alignment. But the padding behavior can be completely disabled by setting [[#set_base32_padding|set_base32_padding]] <code>off</code>.
 
 When taking a single argument, this directive will do in-place modification of the argument variable. For example,
 
@@ -430,6 +430,20 @@ then request <code>GET /test</code> will give exactly the same output as the pre
 
 This directive can be invoked by [[HttpLuaModule]]'s [[HttpLuaModule#ndk.set_var.DIRECTIVE|ndk.set_var.DIRECTIVE]] interface and [[HttpArrayVarModule]]'s [[HttpArrayVarModule#array_map_op|array_map_op]] directive.
 
+== set_base32_padding ==
+'''syntax:''' ''set_base32_padding on|off''
+
+'''default:''' ''on''
+
+'''context:''' ''http, server, server if, location, location if''
+
+'''phase:''' ''no''
+
+This directive can control whether to pad left-over bytes with the "=" character when encoding a base32 digest by the
+[[#set_encode_base32|set_encode_base32]] directive.
+
+This directive was first introduced in <code>v0.28</code>. If you use earlier versions of this module, then you should use [[#set_misc_base32_padding|set_misc_base32_padding]] instead.
+
 == set_misc_base32_padding ==
 '''syntax:''' ''set_misc_base32_padding on|off''
 
@@ -439,7 +453,22 @@ This directive can be invoked by [[HttpLuaModule]]'s [[HttpLuaModule#ndk.set_var
 
 '''phase:''' ''no''
 
-This directive can control whether to pad left-over bytes with the "=" character when encoding a base32 digest by the [[#set_encode_base32|set_encode_base32]] directive.
+This directive has been deprecated since <code>v0.28</code>. Use [[#set_base32_padding|set_base32_padding]] instead if you are using <code>v0.28+</code>.
+
+== set_base32_alphabet ==
+'''syntax:''' ''set_base32_alphabet <alphabet>''
+
+'''default:''' ''"0123456789abcdefghijklmnopqrstuv"''
+
+'''context:''' ''http, server, server if, location, location if''
+
+'''phase:''' ''no''
+
+This directive controls the alphabet used for encoding/decoding a base32 digest. It accepts a string containing the desired alphabet like "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567" for standard alphabet.
+
+Extended (base32hex) alphabet is used by default.
+
+This directive was first introduced in <code>v0.28</code>.
 
 == set_decode_base32 ==
 '''syntax:''' ''set_decode_base32 $dst <src>''
@@ -967,12 +996,12 @@ may lead to segmentation faults.
 This module is included and enabled by default in the [http://openresty.org ngx_openresty bundle]. If you want to install this module manually with your own Nginx source tarball, then follow the steps below:
 
 Grab the nginx source code from [http://nginx.org/ nginx.org], for example,
-the version 1.5.8 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
+the version 1.7.7 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
 
 <geshi lang="bash">
-    wget 'http://nginx.org/download/nginx-1.5.8.tar.gz'
-    tar -xzvf nginx-1.5.8.tar.gz
-    cd nginx-1.5.8/
+    wget 'http://nginx.org/download/nginx-1.7.7.tar.gz'
+    tar -xzvf nginx-1.7.7.tar.gz
+    cd nginx-1.7.7/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     ./configure --prefix=/opt/nginx \
@@ -984,7 +1013,7 @@ the version 1.5.8 (see [[#Compatibility|nginx compatibility]]), and then build t
     make install
 </geshi>
 
-Download the latest version of the release tarball of this module from [http://github.com/agentzh/set-misc-nginx-module/tags set-misc-nginx-module file list], and the latest tarball for [https://github.com/simpl/ngx_devel_kit ngx_devel_kit] from its [https://github.com/simpl/ngx_devel_kit/tags file list].
+Download the latest version of the release tarball of this module from [http://github.com/openresty/set-misc-nginx-module/tags set-misc-nginx-module file list], and the latest tarball for [https://github.com/simpl/ngx_devel_kit ngx_devel_kit] from its [https://github.com/simpl/ngx_devel_kit/tags file list].
 
 Also, this module is included and enabled by default in the [http://openresty.org/ ngx_openresty bundle].
 
@@ -992,6 +1021,8 @@ Also, this module is included and enabled by default in the [http://openresty.or
 
 The following versions of Nginx should work with this module:
 
+* '''1.7.x'''                       (last tested: 1.7.7)
+* '''1.6.x'''
 * '''1.5.x'''                       (last tested: 1.5.8)
 * '''1.4.x'''                       (last tested: 1.4.4)
 * '''1.2.x'''                       (last tested: 1.2.9)
@@ -1008,11 +1039,11 @@ If you find that any particular version of Nginx above 0.7.46 does not work with
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
 
 # send a bug report or even patches to the [https://groups.google.com/group/openresty-en openresty-en mailing list],
-# or create a ticket on the [http://github.com/agentzh/set-misc-nginx-module/issues issue tracking interface] provided by GitHub.
+# or create a ticket on the [http://github.com/openresty/set-misc-nginx-module/issues issue tracking interface] provided by GitHub.
 
 = Source Repository =
 
-Available on github at [http://github.com/agentzh/set-misc-nginx-module agentzh/set-misc-nginx-module].
+Available on github at [http://github.com/openresty/set-misc-nginx-module openresty/set-misc-nginx-module].
 
 = Changes =
 
@@ -1022,8 +1053,8 @@ http://openresty.org/#Changes
 
 = Test Suite =
 
-This module comes with a Perl-driven test suite. The [http://github.com/agentzh/set-misc-nginx-module/tree/master/t/ test cases] are
-[http://github.com/agentzh/set-misc-nginx-module/blob/master/t/escape-uri.t declarative] too. Thanks to the [http://search.cpan.org/perldoc?Test::Nginx Test::Nginx] module in the Perl world.
+This module comes with a Perl-driven test suite. The [http://github.com/openresty/set-misc-nginx-module/tree/master/t/ test cases] are
+[http://github.com/openresty/set-misc-nginx-module/blob/master/t/escape-uri.t declarative] too. Thanks to the [http://search.cpan.org/perldoc?Test::Nginx Test::Nginx] module in the Perl world.
 
 To run it on your side:
 
@@ -1047,7 +1078,7 @@ This wiki page is also maintained by the author himself, and everybody is encour
 
 = Copyright & License =
 
-Copyright (C) 2009-2014, Yichun Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
+Copyright (C) 2009-2015, Yichun Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
 
 This module is licensed under the terms of the BSD license.
 
@@ -1073,3 +1104,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 = See Also =
 * [https://github.com/simpl/ngx_devel_kit Nginx Devel Kit]
 * [http://openresty.org The ngx_openresty bundle]
+

@@ -25,11 +25,19 @@
 
 
 #define NGX_UNESCAPE_URI_COMPONENT  0
+#define BASE32_ALPHABET_LEN         32
 
 
 static void *ngx_http_set_misc_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_set_misc_merge_loc_conf(ngx_conf_t *cf, void *parent,
     void *child);
+static char * ngx_http_set_misc_base32_alphabet(ngx_conf_t *cf,
+    ngx_command_t *cmd, void *conf);
+
+
+static ngx_conf_deprecated_t  ngx_conf_deprecated_set_misc_base32_padding = {
+    ngx_conf_deprecated, "set_misc_base32_padding", "set_base32_padding"
+};
 
 
 static ndk_set_var_t  ngx_http_set_misc_set_encode_base64_filter = {
@@ -325,12 +333,31 @@ static ngx_command_t  ngx_http_set_misc_commands[] = {
         NULL
     },
     {
+        /* this is now deprecated; use set_base32_padding instead */
         ngx_string("set_misc_base32_padding"),
         NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_SIF_CONF
-            |NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_FLAG,
+                          |NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_FLAG,
         ngx_conf_set_flag_slot,
         NGX_HTTP_LOC_CONF_OFFSET,
         offsetof(ngx_http_set_misc_loc_conf_t, base32_padding),
+        &ngx_conf_deprecated_set_misc_base32_padding,
+    },
+    {
+        ngx_string("set_base32_padding"),
+        NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_SIF_CONF
+                          |NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_FLAG,
+        ngx_conf_set_flag_slot,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_set_misc_loc_conf_t, base32_padding),
+        NULL
+    },
+    {
+        ngx_string("set_base32_alphabet"),
+        NGX_HTTP_MAIN_CONF|NGX_HTTP_SRV_CONF|NGX_HTTP_SIF_CONF
+            |NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
+        ngx_http_set_misc_base32_alphabet,
+        NGX_HTTP_LOC_CONF_OFFSET,
+        offsetof(ngx_http_set_misc_loc_conf_t, base32_alphabet),
         NULL
     },
     {
@@ -453,10 +480,12 @@ ngx_http_set_misc_create_loc_conf(ngx_conf_t *cf)
 
     conf = ngx_palloc(cf->pool, sizeof(ngx_http_set_misc_loc_conf_t));
     if (conf == NULL) {
-        return NGX_CONF_ERROR;
+        return NULL;
     }
 
     conf->base32_padding = NGX_CONF_UNSET;
+    conf->base32_alphabet.data = NULL;
+    conf->base32_alphabet.len = 0;
     conf->current = NGX_CONF_UNSET;
 
     return conf;
@@ -466,13 +495,41 @@ ngx_http_set_misc_create_loc_conf(ngx_conf_t *cf)
 char *
 ngx_http_set_misc_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 {
+    ngx_uint_t               i;
+
     ngx_http_set_misc_loc_conf_t *prev = parent;
     ngx_http_set_misc_loc_conf_t *conf = child;
 
     ngx_conf_merge_value(conf->base32_padding, prev->base32_padding, 1);
 
+    ngx_conf_merge_str_value(conf->base32_alphabet, prev->base32_alphabet,
+                             "0123456789abcdefghijklmnopqrstuv");
+
     ngx_conf_merge_value(conf->current, prev->current, NGX_CONF_UNSET);
+
+    for (i = 0; i < BASE32_ALPHABET_LEN; i++) {
+        conf->basis32[conf->base32_alphabet.data[i]] = (u_char) i;
+    }
 
     return NGX_CONF_OK;
 }
 
+
+static char *
+ngx_http_set_misc_base32_alphabet(ngx_conf_t *cf, ngx_command_t *cmd,
+    void *conf)
+{
+    ngx_str_t       *value;
+
+    value = cf->args->elts;
+
+    if (value[1].len != BASE32_ALPHABET_LEN) {
+        ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+                           "\"set_base32_alphabet\" directive takes an "
+                           "alphabet of %uz bytes but %d expected",
+                           value[1].len, BASE32_ALPHABET_LEN);
+        return NGX_CONF_ERROR;
+    }
+
+    return ngx_conf_set_str_slot(cf, cmd, conf);
+}
