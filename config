@@ -7,6 +7,7 @@ else
     exit 1
 fi
 
+<<<<<<< HEAD
 SET_MISC_SRCS="                                                             \
             $ngx_addon_dir/src/ngx_http_set_base32.c                        \
             $ngx_addon_dir/src/ngx_http_set_default_value.c                 \
@@ -22,6 +23,7 @@ SET_MISC_SRCS="                                                             \
             $ngx_addon_dir/src/ngx_http_set_hex.c                           \
             $ngx_addon_dir/src/ngx_http_set_ip_matches.c                    \
             $ngx_addon_dir/src/ngx_http_set_base64.c                        \
+            $ngx_addon_dir/src/ngx_http_set_base64url.c                     \
             $ngx_addon_dir/src/ngx_http_set_random.c                        \
             $ngx_addon_dir/src/ngx_http_set_secure_random.c                 \
             $ngx_addon_dir/src/ngx_http_set_rotate.c
@@ -41,6 +43,7 @@ SET_MISC_DEPS="                                                             \
             $ngx_addon_dir/src/ngx_http_set_hex.h                           \
             $ngx_addon_dir/src/ngx_http_set_ip_matches.h                    \
             $ngx_addon_dir/src/ngx_http_set_base64.h                        \
+            $ngx_addon_dir/src/ngx_http_set_base64url.h                     \
             $ngx_addon_dir/src/ngx_http_set_random.h                        \
             $ngx_addon_dir/src/ngx_http_set_rotate.h                        \
             $ngx_addon_dir/src/ngx_http_set_secure_random.h                 \
