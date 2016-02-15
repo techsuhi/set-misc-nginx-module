@@ -16,6 +16,7 @@ SET_MISC_SRCS="                                                             \
             $ngx_addon_dir/src/ngx_http_set_unescape_uri.c                  \
             $ngx_addon_dir/src/ngx_http_set_misc_module.c                   \
             $ngx_addon_dir/src/ngx_http_set_escape_uri.c                    \
+            $ngx_addon_dir/src/ngx_http_set_expired.c                       \
             $ngx_addon_dir/src/ngx_http_set_hash.c                          \
             $ngx_addon_dir/src/ngx_http_set_local_today.c                   \
             $ngx_addon_dir/src/ngx_http_set_hex.c                           \
@@ -33,6 +34,7 @@ SET_MISC_DEPS="                                                             \
             $ngx_addon_dir/src/ngx_http_set_quote_json.h                    \
             $ngx_addon_dir/src/ngx_http_set_unescape_uri.h                  \
             $ngx_addon_dir/src/ngx_http_set_escape_uri.h                    \
+            $ngx_addon_dir/src/ngx_http_set_expired.h                       \
             $ngx_addon_dir/src/ngx_http_set_hash.h                          \
             $ngx_addon_dir/src/ngx_http_set_local_today.h                   \
             $ngx_addon_dir/src/ngx_http_set_hex.h                           \
